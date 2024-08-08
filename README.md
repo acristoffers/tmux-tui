@@ -2,6 +2,8 @@
 
 Manages tmux sessions, windows and panes in a Terminal User Interface inspired by lazygit.
 
+![screenshot](.screenshot/screenshot.png)
+
 ## Implemented actions
 
 |         | Create | Destroy | Rename| Go to |
