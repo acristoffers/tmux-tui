@@ -8,7 +8,7 @@ Manages tmux sessions, windows and panes in a Terminal User Interface inspired b
 | :---    | :---   | :---    | :---  | :---  |
 | Session | ✓      | ✓       | ✓     | ✓     |
 | Window  | ✓      | ✓       | ✓     | ✓     |
-| Pane    | ✓      | ✓       | ✗     | ✓     |
+| Pane    | ✗      | ✓       | ✗     | ✓     |
 
 Desired, but not yet done: swap, move
 
