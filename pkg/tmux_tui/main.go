@@ -3,6 +3,7 @@ package tmux_tui
 import (
 	"fmt"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/charmbracelet/bubbles/textinput"
@@ -207,9 +208,24 @@ func previewCmd(m model) tea.Cmd {
 }
 
 func statusLine(m model) string {
-	str := "Quit: q | Go to: <enter> | Delete: d | Toggle show all: a"
+	left := []string{"Quit: q", "Go to: <enter>", "Delete: d"}
+
 	if m.focusedPane != 3 {
-		str += " | New: n | Rename: r"
+		left = append(left, "New: n")
+		left = append(left, "Rename: r")
 	}
-	return lipgloss.PlaceHorizontal(m.windowWidth-4, lipgloss.Left, str)
+
+	if m.showAll {
+		item := lipgloss.NewStyle().Foreground(lipgloss.Color("2")).Render("Show all: a")
+		left = append(left, item)
+	} else {
+		left = append(left, "Show all: a")
+	}
+
+	leftString := strings.Join(left, " | ")
+	rightString := lipgloss.NewStyle().Foreground(lipgloss.Color("2")).Render(strings.TrimSpace(Version))
+
+	leftString = lipgloss.PlaceHorizontal(m.windowWidth-5-lipgloss.Width(rightString), lipgloss.Left, leftString)
+
+	return leftString + " " + rightString
 }
