@@ -37,6 +37,8 @@ type model struct {
 	focusedWindowsItem  int
 	focusedPanesItem    int
 
+	showAll bool
+
 	sessions []entity
 	windows  []entity
 	panes    []entity
@@ -67,3 +69,5 @@ type windowsListMsg struct {
 	entities []entity
 	current  int
 }
+
+type showAllMsg struct{}

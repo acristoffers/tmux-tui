@@ -83,7 +83,7 @@ func listWindowsCmd(m model) tea.Cmd {
 			if err != nil {
 				continue
 			}
-			if len(m.sessions) > 0 && session != m.sessions[m.focusedSessionsItem].id {
+			if !m.showAll && len(m.sessions) > 0 && session != m.sessions[m.focusedSessionsItem].id {
 				continue
 			}
 			id, err := strconv.Atoi(strings.Replace(parts[1], "@", "", 1))
@@ -134,7 +134,7 @@ func renameWindowCmd(m model) tea.Cmd {
 
 func newWindowCmd(m model) tea.Cmd {
 	return func() tea.Msg {
-    c := exec.Command("tmux", "new-window", "-n", m.textInput.Value(), "-t", fmt.Sprintf("%s:", m.sessions[m.focusedSessionsItem].name))
+		c := exec.Command("tmux", "new-window", "-n", m.textInput.Value(), "-t", fmt.Sprintf("%s:", m.sessions[m.focusedSessionsItem].name))
 		c.Run()
 		return goToSession(m)()
 	}

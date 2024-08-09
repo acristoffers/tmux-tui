@@ -21,6 +21,7 @@ func NewApplication() *tea.Program {
 		preview:             "",
 		appState:            MainWindow,
 		inputAction:         None,
+		showAll:             false,
 	}
 
 	model.textInput = textinput.New()
@@ -63,7 +64,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg := msg.(type) {
 		case tea.KeyMsg:
 			switch msg.String() {
-			case "ctrl+c", "q":
+			case "ctrl+c", "q", tea.KeyEsc.String():
 				return m, tea.Quit
 			case "1":
 				m.focusedPane = 1
@@ -103,6 +104,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				case 3:
 					return m, deletePaneCmd(m)
 				}
+			case "a":
+				m.showAll = !m.showAll
+				return m, listSessionsCmd
 			}
 		case tea.WindowSizeMsg:
 			m.windowWidth = msg.Width
@@ -203,7 +207,7 @@ func previewCmd(m model) tea.Cmd {
 }
 
 func statusLine(m model) string {
-	str := "Quit: q | Go to: <enter> | Delete: d"
+	str := "Quit: q | Go to: <enter> | Delete: d | Toggle show all: a"
 	if m.focusedPane != 3 {
 		str += " | New: n | Rename: r"
 	}

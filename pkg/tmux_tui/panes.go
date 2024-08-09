@@ -83,7 +83,7 @@ func listPanesCmd(m model) tea.Cmd {
 			if err != nil {
 				continue
 			}
-			if len(m.windows) > 0 && window != m.windows[m.focusedWindowsItem].id {
+			if !m.showAll && len(m.windows) > 0 && window != m.windows[m.focusedWindowsItem].id {
 				continue
 			}
 			id, err := strconv.Atoi(strings.Replace(parts[1], "%", "", 1))
