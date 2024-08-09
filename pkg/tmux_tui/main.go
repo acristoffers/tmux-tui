@@ -293,7 +293,7 @@ func statusLine(m model) string {
 
 	if m.appState == Swapping {
 		left = append(left, lipgloss.NewStyle().Foreground(lipgloss.Color("2")).Render("Swap: s"))
-	} else {
+	} else if m.focusedPane != 1 {
 		left = append(left, "Swap: s")
 	}
 
