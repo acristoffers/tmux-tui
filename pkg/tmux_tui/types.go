@@ -9,6 +9,7 @@ import (
 type entity struct {
 	id   int
 	name string
+  parent int
 }
 
 type AppState int
@@ -49,6 +50,9 @@ type model struct {
 	appState    AppState
 	inputAction InputAction
 
+  swapping bool
+  swapSrc int
+
 	textInput textinput.Model
 }
 
@@ -71,3 +75,6 @@ type windowsListMsg struct {
 }
 
 type showAllMsg struct{}
+
+type swapStartMsg struct{}
+type swapExecuteMsg struct{}

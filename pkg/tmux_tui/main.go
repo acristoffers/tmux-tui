@@ -23,6 +23,7 @@ func NewApplication() *tea.Program {
 		appState:            MainWindow,
 		inputAction:         None,
 		showAll:             false,
+		swapping:            false,
 	}
 
 	model.textInput = textinput.New()
@@ -62,95 +63,164 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return r, c
 		}
 
-		switch msg := msg.(type) {
-		case tea.KeyMsg:
-			switch msg.String() {
-			case "ctrl+c", "q", tea.KeyEsc.String():
-				return m, tea.Quit
-			case "1":
-				m.focusedPane = 1
-				return m, previewCmd(m)
-			case "2":
-				m.focusedPane = 2
-				return m, previewCmd(m)
-			case "3":
-				m.focusedPane = 3
-				return m, previewCmd(m)
-			case "r":
-				if m.focusedPane == 1 {
-					m.inputAction = RenameSession
-					m.appState = TextInput
-					return m, nil
-				} else if m.focusedPane == 2 {
-					m.inputAction = RenameWindow
-					m.appState = TextInput
-					return m, nil
-				}
-			case "n":
-				if m.focusedPane == 1 {
-					m.inputAction = NewSession
-					m.appState = TextInput
-					return m, nil
-				} else if m.focusedPane == 2 {
-					m.inputAction = NewWindow
-					m.appState = TextInput
-					return m, nil
-				}
-			case "d":
-				switch m.focusedPane {
-				case 1:
-					return m, deleteSessionCmd(m)
-				case 2:
-					return m, deleteWindowCmd(m)
-				case 3:
-					return m, deletePaneCmd(m)
-				}
-			case "a":
-				m.showAll = !m.showAll
-				return m, listSessionsCmd
-			}
-		case tea.WindowSizeMsg:
-			m.windowWidth = msg.Width
-			m.windowHeight = msg.Height
-		case tickMsg:
-			return m, tea.Batch(tickCmd(), listSessionsCmd)
-		case previewMsg:
-			m.preview = string(msg)
+		if m.swapping {
+			return m.UpdateSwapping(msg)
+		} else {
+			return m.UpdateNormal(msg)
 		}
-
 	case TextInput:
-		switch msg := msg.(type) {
-		case tea.KeyMsg:
-			switch msg.String() {
-			case tea.KeyEnter.String():
-				m.appState = MainWindow
-				if len(m.textInput.Value()) == 0 {
-					m.inputAction = None
-					m.textInput.SetValue("")
-					return m, nil
-				}
-				switch m.inputAction {
-				case RenameSession:
-					return m, renameSessionCmd(m)
-				case RenameWindow:
-					return m, renameWindowCmd(m)
-				case NewSession:
-					return m, newSessionCmd(m)
-				case NewWindow:
-					return m, newWindowCmd(m)
-				}
-			case tea.KeyEsc.String():
-				m.inputAction = None
-				m.appState = MainWindow
-				m.textInput.SetValue("")
-			}
-		}
-
-		var cmd tea.Cmd
+		m, cmd := m.UpdateTextInput(msg)
 		m.textInput, cmd = m.textInput.Update(msg)
 		return m, cmd
 	}
 
+	return m, nil
+}
+
+func (m model) UpdateNormal(msg tea.Msg) (model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "ctrl+c", "q", tea.KeyEsc.String():
+			return m, tea.Quit
+		case "1":
+			m.focusedPane = 1
+			return m, previewCmd(m)
+		case "2":
+			m.focusedPane = 2
+			return m, previewCmd(m)
+		case "3":
+			m.focusedPane = 3
+			return m, previewCmd(m)
+		case "r":
+			if m.focusedPane == 1 {
+				m.inputAction = RenameSession
+				m.appState = TextInput
+				return m, nil
+			} else if m.focusedPane == 2 {
+				m.inputAction = RenameWindow
+				m.appState = TextInput
+				return m, nil
+			}
+		case "n":
+			if m.focusedPane == 1 {
+				m.inputAction = NewSession
+				m.appState = TextInput
+				return m, nil
+			} else if m.focusedPane == 2 {
+				m.inputAction = NewWindow
+				m.appState = TextInput
+				return m, nil
+			}
+		case "d":
+			switch m.focusedPane {
+			case 1:
+				return m, deleteSessionCmd(m)
+			case 2:
+				return m, deleteWindowCmd(m)
+			case 3:
+				return m, deletePaneCmd(m)
+			}
+		case "a":
+			m.showAll = !m.showAll
+			return m, listSessionsCmd
+		case "s":
+			switch m.focusedPane {
+			case 2:
+				m.swapping = true
+				m.swapSrc = m.focusedWindowsItem
+			case 3:
+				m.swapping = true
+				m.swapSrc = m.focusedPanesItem
+			}
+		case tea.KeyEnter.String():
+			switch m.focusedPane {
+			case 1:
+				return m, goToSession(m)
+			case 2:
+				return m, goToWindow(m)
+			case 3:
+				return m, goToPane(m)
+			}
+		}
+	case tea.WindowSizeMsg:
+		m.windowWidth = msg.Width
+		m.windowHeight = msg.Height
+	case tickMsg:
+		return m, tea.Batch(tickCmd(), listSessionsCmd)
+	case previewMsg:
+		m.preview = string(msg)
+	}
+
+	return m, nil
+}
+
+func (m model) UpdateSwapping(msg tea.Msg) (model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "ctrl+c", "q":
+			return m, tea.Quit
+		case tea.KeyEsc.String():
+			m.swapping = false
+			return m, nil
+		case "a":
+			m.showAll = !m.showAll
+			return m, listSessionsCmd
+		case "s", tea.KeySpace.String(), tea.KeyEnter.String():
+			m.swapping = false
+			switch m.focusedPane {
+			case 2:
+				if m.swapSrc == m.focusedWindowsItem {
+					return m, nil
+				}
+				return m, swapWindowsCmd(m)
+			case 3:
+				if m.swapSrc == m.focusedPanesItem {
+					return m, nil
+				}
+				return m, swapPanesCmd(m)
+			}
+		}
+	case tea.WindowSizeMsg:
+		m.windowWidth = msg.Width
+		m.windowHeight = msg.Height
+	case tickMsg:
+		return m, tea.Batch(tickCmd(), listSessionsCmd)
+	case previewMsg:
+		m.preview = string(msg)
+	}
+
+	return m, nil
+}
+
+func (m model) UpdateTextInput(msg tea.Msg) (model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case tea.KeyEnter.String():
+			m.appState = MainWindow
+			if len(m.textInput.Value()) == 0 {
+				m.inputAction = None
+				m.textInput.SetValue("")
+				return m, nil
+			}
+			switch m.inputAction {
+			case RenameSession:
+				return m, renameSessionCmd(m)
+			case RenameWindow:
+				return m, renameWindowCmd(m)
+			case NewSession:
+				return m, newSessionCmd(m)
+			case NewWindow:
+				return m, newWindowCmd(m)
+			}
+		case tea.KeyEsc.String():
+			m.inputAction = None
+			m.appState = MainWindow
+			m.textInput.SetValue("")
+		}
+	}
 	return m, nil
 }
 
@@ -220,6 +290,12 @@ func statusLine(m model) string {
 		left = append(left, item)
 	} else {
 		left = append(left, "Show all: a")
+	}
+
+	if m.swapping {
+		left = append(left, lipgloss.NewStyle().Foreground(lipgloss.Color("2")).Render("Swap: s"))
+	} else {
+		left = append(left, "Swap: s")
 	}
 
 	leftString := strings.Join(left, " | ")

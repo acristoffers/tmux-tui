@@ -41,8 +41,6 @@ func (m model) updatePanes(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+n", "j", tea.KeyDown.String():
 			m.focusedPanesItem = int(math.Min(float64(len(m.panes)-1), float64(m.focusedPanesItem)+1))
 			return m, previewCmd(m)
-		case tea.KeyEnter.String():
-			return m, goToPane(m)
 		}
 	}
 
@@ -50,26 +48,30 @@ func (m model) updatePanes(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) viewPanes() string {
-	output := ""
+	var panes []string
 
 	for i, pane := range m.panes {
 		panesString := lipgloss.NewStyle().
-			MaxWidth(m.windowWidth/3 - 5).
+			Width(m.windowWidth/3 - 4).
+			MaxWidth(m.windowWidth/3 - 4).
 			SetString(fmt.Sprintf("%d", pane.id))
 		if i == m.focusedPanesItem {
 			panesString = panesString.Foreground(lipgloss.Color("2"))
 		}
-		output = lipgloss.JoinVertical(lipgloss.Top, output, panesString.String())
+		if m.swapping && i == m.swapSrc && m.focusedPane == 3 {
+			panesString = panesString.Background(lipgloss.Color("6")).Foreground(lipgloss.Color("0"))
+		}
+		panes = append(panes, panesString.String())
 	}
 
-	return output
+	return lipgloss.JoinVertical(lipgloss.Top, panes...)
 }
 
 func listPanesCmd(m model) tea.Cmd {
 	return func() tea.Msg {
 		panes := panesListMsg{}
 
-		c := exec.Command("tmux", "list-panes", "-aF", "#{window_id}:#{pane_id}")
+		c := exec.Command("tmux", "list-panes", "-aF", "#{window_id}\t#{pane_id}")
 		bytes, err := c.Output()
 		if err != nil {
 			return nil
@@ -78,7 +80,7 @@ func listPanesCmd(m model) tea.Cmd {
 
 		scanner := bufio.NewScanner(strings.NewReader(str))
 		for scanner.Scan() {
-			parts := strings.Split(scanner.Text(), ":")
+			parts := strings.Split(scanner.Text(), "\t")
 			window, err := strconv.Atoi(strings.Replace(parts[0], "@", "", 1))
 			if err != nil {
 				continue
@@ -90,7 +92,7 @@ func listPanesCmd(m model) tea.Cmd {
 			if err != nil {
 				continue
 			}
-			panes.entities = append(panes.entities, entity{id, ""})
+			panes.entities = append(panes.entities, entity{id, "", window})
 		}
 
 		sort.Slice(panes.entities, func(i, j int) bool {
@@ -116,8 +118,19 @@ func listPanesCmd(m model) tea.Cmd {
 
 func goToPane(m model) tea.Cmd {
 	return func() tea.Msg {
-		_ = goToWindow(m)()
-		c := exec.Command("tmux", "select-pane", "-t", fmt.Sprintf("%%%d", m.panes[m.focusedPanesItem].id))
+		id := m.panes[m.focusedPanesItem].id
+    c := exec.Command("tmux", "list-panes", "-aF", "#{session_name}\t#{window_id}", "-f", fmt.Sprintf("#{m:#{pane_id},%%%d}", id))
+		bytes, err := c.Output()
+		if err != nil {
+			return nil
+		}
+		str := strings.TrimSpace(string(bytes[:]))
+    ids := strings.Split(str, "\t")
+		c = exec.Command("tmux", "switch-client", "-t", ids[0])
+		c.Run()
+		c = exec.Command("tmux", "select-window", "-t", ids[1])
+		c.Run()
+		c = exec.Command("tmux", "select-pane", "-t", fmt.Sprintf("%%%d", id))
 		c.Run()
 		return tea.QuitMsg{}
 	}
@@ -126,6 +139,16 @@ func goToPane(m model) tea.Cmd {
 func deletePaneCmd(m model) tea.Cmd {
 	return func() tea.Msg {
 		c := exec.Command("tmux", "kill-pane", "-t", fmt.Sprintf("%%%d", m.panes[m.focusedPanesItem].id))
+		c.Run()
+		return tickMsg{}
+	}
+}
+
+func swapPanesCmd(m model) tea.Cmd {
+	return func() tea.Msg {
+		src := fmt.Sprintf("%%%d", m.panes[m.swapSrc].id)
+		dst := fmt.Sprintf("%%%d", m.panes[m.focusedPanesItem].id)
+		c := exec.Command("tmux", "swap-pane", "-s", src, "-t", dst)
 		c.Run()
 		return tickMsg{}
 	}

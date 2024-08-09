@@ -44,8 +44,6 @@ func (m model) updateSessions(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+n", "j", tea.KeyDown.String():
 			m.focusedSessionsItem = int(math.Min(float64(len(m.sessions)-1), float64(m.focusedSessionsItem)+1))
 			return m, tea.Batch(listWindowsCmd(m), previewCmd(m))
-		case tea.KeyEnter.String():
-			return m, goToSession(m)
 		}
 	}
 
@@ -53,25 +51,26 @@ func (m model) updateSessions(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) viewSessions() string {
-	output := ""
+	var sessions []string
 
 	for i, session := range m.sessions {
-		sessionString := lipgloss.NewStyle().
+		panesString := lipgloss.NewStyle().
+			Width(m.windowWidth/3 - 4).
 			MaxWidth(m.windowWidth/3 - 5).
 			SetString(fmt.Sprintf("%d: %s", session.id, session.name))
 		if i == m.focusedSessionsItem {
-			sessionString = sessionString.Foreground(lipgloss.Color("2"))
+			panesString = panesString.Foreground(lipgloss.Color("2"))
 		}
-		output = lipgloss.JoinVertical(lipgloss.Top, output, sessionString.String())
+		sessions = append(sessions, panesString.String())
 	}
 
-	return output
+	return lipgloss.JoinVertical(lipgloss.Top, sessions...)
 }
 
 func listSessionsCmd() tea.Msg {
 	sessions := sessionsListMsg{}
 
-	c := exec.Command("tmux", "list-sessions", "-F", "#{session_id}:#{session_name}")
+	c := exec.Command("tmux", "list-sessions", "-F", "#{session_id}\t#{session_name}")
 	bytes, err := c.Output()
 	if err != nil {
 		return nil
@@ -80,13 +79,13 @@ func listSessionsCmd() tea.Msg {
 
 	scanner := bufio.NewScanner(strings.NewReader(str))
 	for scanner.Scan() {
-		parts := strings.Split(scanner.Text(), ":")
+		parts := strings.Split(scanner.Text(), "\t")
 		id, err := strconv.Atoi(strings.Replace(parts[0], "$", "", 1))
 		name := parts[1]
 		if err != nil {
 			continue
 		}
-		sessions.entities = append(sessions.entities, entity{id, name})
+		sessions.entities = append(sessions.entities, entity{id, name, -1})
 	}
 
 	sort.Slice(sessions.entities, func(i, j int) bool {
