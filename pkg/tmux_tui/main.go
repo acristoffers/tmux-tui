@@ -23,7 +23,6 @@ func NewApplication() *tea.Program {
 		appState:            MainWindow,
 		inputAction:         None,
 		showAll:             false,
-		swapping:            false,
 	}
 
 	model.textInput = textinput.New()
@@ -46,8 +45,7 @@ func (m model) Init() tea.Cmd {
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch m.appState {
-	case MainWindow:
+	if m.appState != TextInput {
 		r, c := m.updateSessions(msg)
 		if r != nil {
 			return r, c
@@ -62,12 +60,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if r != nil {
 			return r, c
 		}
+	}
 
-		if m.swapping {
-			return m.UpdateSwapping(msg)
-		} else {
-			return m.UpdateNormal(msg)
-		}
+	switch m.appState {
+	case MainWindow:
+		return m.UpdateNormal(msg)
+	case Swapping:
+		return m.UpdateSwapping(msg)
 	case TextInput:
 		m, cmd := m.UpdateTextInput(msg)
 		m.textInput, cmd = m.textInput.Update(msg)
@@ -127,10 +126,10 @@ func (m model) UpdateNormal(msg tea.Msg) (model, tea.Cmd) {
 		case "s":
 			switch m.focusedPane {
 			case 2:
-				m.swapping = true
+				m.appState = Swapping
 				m.swapSrc = m.focusedWindowsItem
 			case 3:
-				m.swapping = true
+				m.appState = Swapping
 				m.swapSrc = m.focusedPanesItem
 			}
 		case tea.KeyEnter.String():
@@ -162,13 +161,13 @@ func (m model) UpdateSwapping(msg tea.Msg) (model, tea.Cmd) {
 		case "ctrl+c", "q":
 			return m, tea.Quit
 		case tea.KeyEsc.String():
-			m.swapping = false
+			m.appState = MainWindow
 			return m, nil
 		case "a":
 			m.showAll = !m.showAll
 			return m, listSessionsCmd
 		case "s", tea.KeySpace.String(), tea.KeyEnter.String():
-			m.swapping = false
+			m.appState = MainWindow
 			switch m.focusedPane {
 			case 2:
 				if m.swapSrc == m.focusedWindowsItem {
@@ -229,7 +228,7 @@ func (m model) View() string {
 	h := m.windowHeight
 
 	switch m.appState {
-	case MainWindow:
+	case MainWindow, Swapping:
 		h60 := h * 6 / 10
 		h40 := h - h60
 
@@ -292,7 +291,7 @@ func statusLine(m model) string {
 		left = append(left, "Show all: a")
 	}
 
-	if m.swapping {
+	if m.appState == Swapping {
 		left = append(left, lipgloss.NewStyle().Foreground(lipgloss.Color("2")).Render("Swap: s"))
 	} else {
 		left = append(left, "Swap: s")

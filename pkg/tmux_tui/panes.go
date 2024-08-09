@@ -58,7 +58,7 @@ func (m model) viewPanes() string {
 		if i == m.focusedPanesItem {
 			panesString = panesString.Foreground(lipgloss.Color("2"))
 		}
-		if m.swapping && i == m.swapSrc && m.focusedPane == 3 {
+		if m.appState == Swapping && i == m.swapSrc && m.focusedPane == 3 {
 			panesString = panesString.Background(lipgloss.Color("6")).Foreground(lipgloss.Color("0"))
 		}
 		panes = append(panes, panesString.String())
@@ -119,13 +119,13 @@ func listPanesCmd(m model) tea.Cmd {
 func goToPane(m model) tea.Cmd {
 	return func() tea.Msg {
 		id := m.panes[m.focusedPanesItem].id
-    c := exec.Command("tmux", "list-panes", "-aF", "#{session_name}\t#{window_id}", "-f", fmt.Sprintf("#{m:#{pane_id},%%%d}", id))
+		c := exec.Command("tmux", "list-panes", "-aF", "#{session_name}\t#{window_id}", "-f", fmt.Sprintf("#{m:#{pane_id},%%%d}", id))
 		bytes, err := c.Output()
 		if err != nil {
 			return nil
 		}
 		str := strings.TrimSpace(string(bytes[:]))
-    ids := strings.Split(str, "\t")
+		ids := strings.Split(str, "\t")
 		c = exec.Command("tmux", "switch-client", "-t", ids[0])
 		c.Run()
 		c = exec.Command("tmux", "select-window", "-t", ids[1])

@@ -58,7 +58,7 @@ func (m model) viewWindows() string {
 		if i == m.focusedWindowsItem {
 			panesString = panesString.Foreground(lipgloss.Color("2"))
 		}
-		if m.swapping && i == m.swapSrc && m.focusedPane == 2 {
+		if m.appState == Swapping && i == m.swapSrc && m.focusedPane == 2 {
 			panesString = panesString.Background(lipgloss.Color("6")).Foreground(lipgloss.Color("0"))
 		}
 		windows = append(windows, panesString.String())
@@ -127,7 +127,7 @@ func goToWindow(m model) tea.Cmd {
 		}
 		str := strings.TrimSpace(string(bytes[:]))
 		c = exec.Command("tmux", "switch-client", "-t", str)
-    c.Run()
+		c.Run()
 		c = exec.Command("tmux", "select-window", "-t", fmt.Sprintf("@%d", id))
 		c.Run()
 		return tea.QuitMsg{}

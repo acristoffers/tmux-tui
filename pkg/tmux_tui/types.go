@@ -17,6 +17,7 @@ type AppState int
 const (
 	MainWindow AppState = iota
 	TextInput
+  Swapping
 )
 
 type InputAction int
@@ -50,7 +51,6 @@ type model struct {
 	appState    AppState
 	inputAction InputAction
 
-  swapping bool
   swapSrc int
 
 	textInput textinput.Model
