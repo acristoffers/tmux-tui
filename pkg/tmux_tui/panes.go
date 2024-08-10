@@ -97,3 +97,16 @@ func swapPanesCmd(m Model) tea.Cmd {
 		return tickMsg{}
 	}
 }
+
+func splitPane(m Model, horizontal bool) tea.Cmd {
+	return func() tea.Msg {
+		target := fmt.Sprintf("%%%d", m.focusedPaneId)
+		orientation := "-v"
+		if horizontal {
+			orientation = "-h"
+		}
+		c := exec.Command("tmux", "split-pane", "-d", "-t", target, orientation)
+		c.Run()
+		return tickMsg{}
+	}
+}

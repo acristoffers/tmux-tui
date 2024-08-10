@@ -10,9 +10,7 @@ Manages tmux sessions, windows and panes in a Terminal User Interface inspired b
 | :---    | :---   | :---    | :---  | :---  | :--- |
 | Session | ✓      | ✓       | ✓     | ✓     | ✗    |
 | Window  | ✓      | ✓       | ✓     | ✓     | ✓    |
-| Pane    | ✗      | ✓       | ✗     | ✓     | ✓    |
-
-Desired, but not yet done: move
+| Pane    | ✓      | ✓       | ✗     | ✓     | ✓    |
 
 ## Installation
 
@@ -31,7 +29,7 @@ nix profile install github:acristoffers/tmux-tui
 And add the following line to your `tmux.conf` to open it in a popup window (scratch window):
 
 ```tmux
-bind-key O display-popup -E -w '80%' -h '80%' tmux-tui
+bind-key O display-popup -E -b rounded -w '80%' -h '80%' tmux-tui
 ```
 
 You can experiment with the width and height (`-w` and `-h`, respectively).

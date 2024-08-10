@@ -139,6 +139,14 @@ func (m Model) UpdateNormal(msg tea.Msg) (Model, tea.Cmd) {
 				m.appState = Swapping
 				m.swapSrc = m.focusedPaneId
 			}
+		case "h":
+			if m.focusedPane == 3 {
+				return m, splitPane(m, true)
+			}
+		case "v":
+			if m.focusedPane == 3 {
+				return m, splitPane(m, false)
+			}
 		case tea.KeyEnter.String():
 			switch m.focusedPane {
 			case 1:
@@ -404,6 +412,9 @@ func statusLine(m Model) string {
 	if m.focusedPane != 3 {
 		left = append(left, "New: n")
 		left = append(left, "Rename: r")
+	} else {
+    left = append(left, "Vertical split: v")
+    left = append(left, "Horizontal split: h")
 	}
 
 	if m.showAll {
