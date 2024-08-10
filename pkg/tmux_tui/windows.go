@@ -91,8 +91,13 @@ func renameWindowCmd(m Model) tea.Cmd {
 
 func newWindowCmd(m Model) tea.Cmd {
 	return func() tea.Msg {
-		c := exec.Command("tmux", "new-window", "-n", m.textInput.Value(), "-t", fmt.Sprintf("%s:", m.sessionWithId(m.focusedSessionId).name))
-		c.Run()
+		if len(m.textInput.Value()) > 0 {
+			c := exec.Command("tmux", "new-window", "-n", m.textInput.Value(), "-t", fmt.Sprintf("$%d:", m.focusedSessionId))
+			c.Run()
+		} else {
+			c := exec.Command("tmux", "new-window", "-t", fmt.Sprintf("$%d:", m.focusedSessionId))
+			c.Run()
+		}
 		return clearInputTextMsg{}
 	}
 }

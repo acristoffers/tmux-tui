@@ -80,10 +80,15 @@ func renameSessionCmd(m Model) tea.Cmd {
 
 func newSessionCmd(m Model) tea.Cmd {
 	return func() tea.Msg {
-    c := exec.Command("tmux",
-			"new-session", "-ds", m.textInput.Value(), ";",
-			"switch-client", "-t", m.textInput.Value())
-		c.Run()
+		if len(m.textInput.Value()) > 0 {
+			c := exec.Command("tmux",
+				"new-session", "-ds", m.textInput.Value(), ";",
+				"switch-client", "-t", m.textInput.Value())
+			c.Run()
+		} else {
+			c := exec.Command("tmux", "new-session", "-d")
+			c.Run()
+		}
 		return clearInputTextMsg{}
 	}
 }

@@ -118,6 +118,12 @@ func (m Model) UpdateNormal(msg tea.Msg) (Model, tea.Cmd) {
 				m.appState = TextInput
 				return m, nil
 			}
+		case "N":
+			if m.focusedPane == 1 {
+				return m, newSessionCmd(m)
+			} else if m.focusedPane == 2 {
+				return m, newWindowCmd(m)
+			}
 		case "d":
 			switch m.focusedPane {
 			case 1:
@@ -413,6 +419,7 @@ func statusLine(m Model) string {
 
 	if m.focusedPane != 3 {
 		left = append(left, "New: n")
+		left = append(left, "New (nameless): N")
 		left = append(left, "Rename: r")
 	} else {
 		left = append(left, "Vertical split: v")
