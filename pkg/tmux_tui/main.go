@@ -285,7 +285,18 @@ func (m Model) View() string {
 		w33 := w / 3
 		lw33 := w - 2*w33
 
-		preview := lipgloss.NewStyle().MaxWidth(w-4).MaxHeight(h60-4).Align(lipgloss.Left, lipgloss.Top).Render(m.preview)
+		foregroundColor := lipgloss.Color("15")
+		if !lipgloss.HasDarkBackground() {
+			foregroundColor = lipgloss.Color("0")
+		}
+
+		preview := lipgloss.NewStyle().
+			Foreground(foregroundColor).
+			Background(lipgloss.NoColor{}).
+			MaxWidth(w-4).
+			MaxHeight(h60-2).
+			Align(lipgloss.Left, lipgloss.Top).
+			Render(m.preview)
 		previewPane := Pane("Preview", w, h60, false, preview)
 
 		sessionsPane := Pane("[1] Sessions", w33, h40-3, m.focusedPane == 1, m.viewSessions())
