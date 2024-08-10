@@ -55,11 +55,14 @@ func (m Model) viewWindows() string {
 			Width(m.windowWidth/3 - 4).
 			MaxWidth(m.windowWidth/3 - 4).
 			SetString(fmt.Sprintf("%d: %s", window.id, window.name))
+		if m.appState == Swapping && window.id == m.swapSrc && m.focusedPane == 2 {
+			panesString = panesString.
+				Background(lipgloss.Color("4")).
+				Foreground(lipgloss.Color("15")).
+				SetString(fmt.Sprintf("[src] %d: %s", window.id, window.name))
+		}
 		if window.id == m.focusedWindowId {
 			panesString = panesString.Foreground(lipgloss.Color("2"))
-		}
-		if m.appState == Swapping && window.id == m.swapSrc && m.focusedPane == 2 {
-			panesString = panesString.Background(lipgloss.Color("6")).Foreground(lipgloss.Color("0"))
 		}
 		windows = append(windows, panesString.String())
 	}

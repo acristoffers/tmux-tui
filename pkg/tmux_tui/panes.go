@@ -55,11 +55,14 @@ func (m Model) viewPanes() string {
 			Width(m.windowWidth/3 - 4).
 			MaxWidth(m.windowWidth/3 - 4).
 			SetString(fmt.Sprintf("%d", pane.id))
+		if m.appState == Swapping && pane.id == m.swapSrc && m.focusedPane == 3 {
+			panesString = panesString.
+				Background(lipgloss.Color("4")).
+				Foreground(lipgloss.Color("15")).
+				SetString(fmt.Sprintf("[src] %d", pane.id))
+		}
 		if pane.id == m.focusedPaneId {
 			panesString = panesString.Foreground(lipgloss.Color("2"))
-		}
-		if m.appState == Swapping && pane.id == m.swapSrc && m.focusedPane == 3 {
-			panesString = panesString.Background(lipgloss.Color("6")).Foreground(lipgloss.Color("0"))
 		}
 		panes = append(panes, panesString.String())
 	}
