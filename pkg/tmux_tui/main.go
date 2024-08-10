@@ -203,6 +203,9 @@ func (m Model) UpdateNormal(msg tea.Msg) (Model, tea.Cmd) {
 		}
 
 		return m, previewCmd(m)
+	case clearInputTextMsg:
+		m.textInput.SetValue("")
+		return m, listEntitiesCmd
 	}
 
 	return m, nil
@@ -258,7 +261,6 @@ func (m Model) UpdateTextInput(msg tea.Msg) (Model, tea.Cmd) {
 			m.appState = MainWindow
 			if len(m.textInput.Value()) == 0 {
 				m.inputAction = None
-				m.textInput.SetValue("")
 				return m, nil
 			}
 			switch m.inputAction {
@@ -413,8 +415,8 @@ func statusLine(m Model) string {
 		left = append(left, "New: n")
 		left = append(left, "Rename: r")
 	} else {
-    left = append(left, "Vertical split: v")
-    left = append(left, "Horizontal split: h")
+		left = append(left, "Vertical split: v")
+		left = append(left, "Horizontal split: h")
 	}
 
 	if m.showAll {

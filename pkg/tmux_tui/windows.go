@@ -85,7 +85,7 @@ func renameWindowCmd(m Model) tea.Cmd {
 	return func() tea.Msg {
 		c := exec.Command("tmux", "rename-window", "-t", fmt.Sprintf("@%d", m.focusedWindowId), m.textInput.Value())
 		c.Run()
-		return goToWindow(m)()
+		return clearInputTextMsg{}
 	}
 }
 
@@ -93,7 +93,7 @@ func newWindowCmd(m Model) tea.Cmd {
 	return func() tea.Msg {
 		c := exec.Command("tmux", "new-window", "-n", m.textInput.Value(), "-t", fmt.Sprintf("%s:", m.sessionWithId(m.focusedSessionId).name))
 		c.Run()
-		return goToSession(m)()
+		return clearInputTextMsg{}
 	}
 }
 

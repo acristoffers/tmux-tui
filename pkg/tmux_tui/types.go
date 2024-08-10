@@ -59,6 +59,7 @@ type Model struct {
 }
 
 type tickMsg time.Time
+type clearInputTextMsg struct{}
 type previewMsg string
 
 type listEntitiesMsg struct {

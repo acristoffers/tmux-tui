@@ -74,7 +74,7 @@ func renameSessionCmd(m Model) tea.Cmd {
 		_ = goToSession(m)()
 		c := exec.Command("tmux", "rename-session", "-t", m.sessionWithId(m.focusedSessionId).name, m.textInput.Value())
 		c.Run()
-		return tea.QuitMsg{}
+		return clearInputTextMsg{}
 	}
 }
 
@@ -84,7 +84,7 @@ func newSessionCmd(m Model) tea.Cmd {
 			"new-session", "-ds", m.textInput.Value(), ";",
 			"switch-client", "-t", m.textInput.Value())
 		c.Run()
-		return tea.QuitMsg{}
+		return clearInputTextMsg{}
 	}
 }
 
