@@ -1,64 +1,58 @@
 package tmux_tui
 
 import (
-	"bufio"
 	"fmt"
-	"math"
 	"os/exec"
-	"sort"
-	"strconv"
-	"strings"
+	"slices"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
-func (m model) initSessions() model {
+func (m Model) initSessions() Model {
 	return m
 }
 
-func (m model) updateSessions(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) updateSessions(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	case sessionsListMsg:
-		if len(m.sessions) != len(msg.entities) {
-			m.focusedSessionsItem = 0
-			for i, v := range msg.entities {
-				if v.id == msg.current {
-					m.focusedSessionsItem = i
-				}
-			}
-		}
-		m.sessions = msg.entities
-		if len(m.preview) == 0 {
-			return m, tea.Batch(listWindowsCmd(m), previewCmd(m))
-		}
-		return m, listWindowsCmd(m)
 	case tea.KeyMsg:
 		if m.focusedPane != 1 {
 			return nil, nil
 		}
 		switch msg.String() {
 		case "ctrl+p", "k", tea.KeyUp.String():
-			m.focusedSessionsItem = int(math.Max(0, float64(m.focusedSessionsItem)-1))
-			return m, tea.Batch(listWindowsCmd(m), previewCmd(m))
+			sessions := m.sessions
+			index := slices.IndexFunc(sessions, func(e entity) bool { return e.id == m.focusedSessionId })
+			if index > 0 && index < len(sessions) {
+				m.focusedSessionId = sessions[index-1].id
+			} else {
+				m.focusedSessionId = sessions[0].id
+			}
+			return m, tea.Batch(listEntitiesCmd, previewCmd(m))
 		case "ctrl+n", "j", tea.KeyDown.String():
-			m.focusedSessionsItem = int(math.Min(float64(len(m.sessions)-1), float64(m.focusedSessionsItem)+1))
-			return m, tea.Batch(listWindowsCmd(m), previewCmd(m))
+			sessions := m.sessions
+			index := slices.IndexFunc(sessions, func(e entity) bool { return e.id == m.focusedSessionId })
+			if index > -1 && index < len(sessions)-1 {
+				m.focusedSessionId = sessions[index+1].id
+			} else if index != len(sessions)-1 {
+				m.focusedSessionId = sessions[0].id
+			}
+			return m, tea.Batch(listEntitiesCmd, previewCmd(m))
 		}
 	}
 
 	return nil, nil
 }
 
-func (m model) viewSessions() string {
+func (m Model) viewSessions() string {
 	var sessions []string
 
-	for i, session := range m.sessions {
+	for _, session := range m.sessions {
 		panesString := lipgloss.NewStyle().
 			Width(m.windowWidth/3 - 4).
 			MaxWidth(m.windowWidth/3 - 5).
 			SetString(fmt.Sprintf("%d: %s", session.id, session.name))
-		if i == m.focusedSessionsItem {
+		if session.id == m.focusedSessionId {
 			panesString = panesString.Foreground(lipgloss.Color("2"))
 		}
 		sessions = append(sessions, panesString.String())
@@ -67,76 +61,36 @@ func (m model) viewSessions() string {
 	return lipgloss.JoinVertical(lipgloss.Top, sessions...)
 }
 
-func listSessionsCmd() tea.Msg {
-	sessions := sessionsListMsg{}
-
-	c := exec.Command("tmux", "list-sessions", "-F", "#{session_id}\t#{session_name}")
-	bytes, err := c.Output()
-	if err != nil {
-		return nil
-	}
-	str := string(bytes[:])
-
-	scanner := bufio.NewScanner(strings.NewReader(str))
-	for scanner.Scan() {
-		parts := strings.Split(scanner.Text(), "\t")
-		id, err := strconv.Atoi(strings.Replace(parts[0], "$", "", 1))
-		name := parts[1]
-		if err != nil {
-			continue
-		}
-		sessions.entities = append(sessions.entities, entity{id, name, -1})
-	}
-
-	sort.Slice(sessions.entities, func(i, j int) bool {
-		return sessions.entities[i].id < sessions.entities[j].id
-	})
-
-	c = exec.Command("tmux", "display-message", "-p", "#{session_id}")
-	bytes, err = c.Output()
-	if err != nil {
-		sessions.current = 0
-		return sessions
-	}
-	str = strings.TrimSpace(string(bytes[:]))
-	sessions.current, err = strconv.Atoi(strings.Replace(str, "$", "", 1))
-	if err != nil {
-		sessions.current = 0
-	}
-
-	return sessions
-}
-
-func goToSession(m model) tea.Cmd {
+func goToSession(m Model) tea.Cmd {
 	return func() tea.Msg {
-		c := exec.Command("tmux", "switch-client", "-t", m.sessions[m.focusedSessionsItem].name)
+		c := exec.Command("tmux", "switch-client", "-t", fmt.Sprintf("$%d", m.focusedSessionId))
 		c.Run()
 		return tea.QuitMsg{}
 	}
 }
 
-func renameSessionCmd(m model) tea.Cmd {
+func renameSessionCmd(m Model) tea.Cmd {
 	return func() tea.Msg {
 		_ = goToSession(m)()
-		c := exec.Command("tmux", "rename-session", "-t", m.sessions[m.focusedSessionsItem].name, m.textInput.Value())
+		c := exec.Command("tmux", "rename-session", "-t", m.sessionWithId(m.focusedSessionId).name, m.textInput.Value())
 		c.Run()
 		return tea.QuitMsg{}
 	}
 }
 
-func newSessionCmd(m model) tea.Cmd {
+func newSessionCmd(m Model) tea.Cmd {
 	return func() tea.Msg {
-		c := exec.Command("tmux", "new-session", "-ds", m.textInput.Value())
-		c.Run()
-		c = exec.Command("tmux", "switch-client", "-t", m.textInput.Value())
+    c := exec.Command("tmux",
+			"new-session", "-ds", m.textInput.Value(), ";",
+			"switch-client", "-t", m.textInput.Value())
 		c.Run()
 		return tea.QuitMsg{}
 	}
 }
 
-func deleteSessionCmd(m model) tea.Cmd {
+func deleteSessionCmd(m Model) tea.Cmd {
 	return func() tea.Msg {
-		c := exec.Command("tmux", "kill-session", "-t", m.sessions[m.focusedSessionsItem].name)
+		c := exec.Command("tmux", "kill-session", "-t", m.sessionWithId(m.focusedSessionId).name)
 		c.Run()
 		return tickMsg{}
 	}

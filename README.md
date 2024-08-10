@@ -6,13 +6,13 @@ Manages tmux sessions, windows and panes in a Terminal User Interface inspired b
 
 ## Implemented actions
 
-|         | Create | Destroy | Rename| Go to |
-| :---    | :---   | :---    | :---  | :---  |
-| Session | ✓      | ✓       | ✓     | ✓     |
-| Window  | ✓      | ✓       | ✓     | ✓     |
-| Pane    | ✗      | ✓       | ✗     | ✓     |
+|         | Create | Destroy | Rename| Go to | Swap |
+| :---    | :---   | :---    | :---  | :---  | :--- |
+| Session | ✓      | ✓       | ✓     | ✓     | ✗    |
+| Window  | ✓      | ✓       | ✓     | ✓     | ✓    |
+| Pane    | ✗      | ✓       | ✗     | ✓     | ✓    |
 
-Desired, but not yet done: swap, move
+Desired, but not yet done: move
 
 ## Installation
 

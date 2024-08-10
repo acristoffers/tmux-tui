@@ -7,9 +7,9 @@ import (
 )
 
 type entity struct {
-	id   int
-	name string
-  parent int
+	id     int
+	name   string
+	parent int
 }
 
 type AppState int
@@ -17,7 +17,7 @@ type AppState int
 const (
 	MainWindow AppState = iota
 	TextInput
-  Swapping
+	Swapping
 )
 
 type InputAction int
@@ -30,14 +30,14 @@ const (
 	NewWindow
 )
 
-type model struct {
+type Model struct {
 	windowWidth  int
 	windowHeight int
 	focusedPane  int
 
-	focusedSessionsItem int
-	focusedWindowsItem  int
-	focusedPanesItem    int
+	focusedSessionId int
+	focusedWindowId  int
+	focusedPaneId    int
 
 	showAll bool
 
@@ -51,30 +51,28 @@ type model struct {
 	appState    AppState
 	inputAction InputAction
 
-  swapSrc int
+	swapSrc int
 
 	textInput textinput.Model
+
+  Error string
 }
 
 type tickMsg time.Time
 type previewMsg string
 
-type panesListMsg struct {
-	entities []entity
-	current  int
-}
-
-type sessionsListMsg struct {
-	entities []entity
-	current  int
-}
-
-type windowsListMsg struct {
-	entities []entity
-	current  int
+type listEntitiesMsg struct {
+	sessions       []entity
+	windows        []entity
+	panes          []entity
+	currentSession int
+	currentWindow  int
+	currentPane    int
 }
 
 type showAllMsg struct{}
 
 type swapStartMsg struct{}
 type swapExecuteMsg struct{}
+
+type errorMsg string

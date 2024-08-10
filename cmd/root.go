@@ -11,7 +11,7 @@ import (
 var RootCmd = &cobra.Command{
 	Use:   "tmux-tui [PATH]",
 	Short: "Terminal User Interface for managing tmux'es windows and sessions",
-	Long:  "Allows you to create, rename, move and delete windows and sessions",
+	Long:  "Allows you to create, rename, move and delete tmux'es windows and sessions",
 	Run: func(cmd *cobra.Command, args []string) {
 		version, err := cmd.Flags().GetBool("version")
 		if err != nil {
@@ -25,9 +25,18 @@ var RootCmd = &cobra.Command{
 		}
 
 		p := tmux_tui.NewApplication()
-		if _, err := p.Run(); err != nil {
-			fmt.Printf("There's been an error: %v", err)
+		m, err := p.Run()
+		if err != nil {
+			os.Stderr.WriteString(fmt.Sprintf("There's been an error: %v\n", err))
 			os.Exit(1)
+		}
+
+		switch m := m.(type) {
+		case tmux_tui.Model:
+			if len(m.Error) != 0 {
+				os.Stderr.WriteString(m.Error + "\n")
+				os.Exit(1)
+			}
 		}
 	},
 }
