@@ -319,6 +319,12 @@ func (m Model) View() string {
 		windowsPane := Pane("[2] Windows", w33, h40-3, m.focusedPane == 2, m.viewWindows())
 		panesPane := Pane("[3] Panes", lw33, h40-3, m.focusedPane == 3, m.viewPanes())
 
+		if m.appState == Swapping {
+			sessionsPane = Pane("Sessions", w33, h40-3, m.focusedPane == 1, m.viewSessions())
+			windowsPane = Pane("Windows", w33, h40-3, m.focusedPane == 2, m.viewWindows())
+			panesPane = Pane("Panes", lw33, h40-3, m.focusedPane == 3, m.viewPanes())
+		}
+
 		statusPane := Pane("Status", w, 3, false, statusLine(m))
 
 		horizontalBox := lipgloss.JoinHorizontal(lipgloss.Left, sessionsPane, windowsPane, panesPane)
@@ -415,15 +421,20 @@ func previewCmd(m Model) tea.Cmd {
 }
 
 func statusLine(m Model) string {
-	left := []string{"Quit: q", "Go to: <enter>", "Delete: d"}
+	left := []string{"Quit: q"}
 
-	if m.focusedPane != 3 {
-		left = append(left, "New: n")
-		left = append(left, "New (nameless): N")
-		left = append(left, "Rename: r")
-	} else {
-		left = append(left, "Vertical split: v")
-		left = append(left, "Horizontal split: h")
+	if m.appState != Swapping {
+    left = append(left, "Go to: <enter>")
+    left = append(left, "Delete: d")
+
+		if m.focusedPane != 3 {
+			left = append(left, "New: n")
+			left = append(left, "New (nameless): N")
+			left = append(left, "Rename: r")
+		} else {
+			left = append(left, "Vertical split: v")
+			left = append(left, "Horizontal split: h")
+		}
 	}
 
 	if m.showAll {
@@ -434,7 +445,8 @@ func statusLine(m Model) string {
 	}
 
 	if m.appState == Swapping {
-		left = append(left, lipgloss.NewStyle().Foreground(lipgloss.Color("2")).Render("Swap: s"))
+		left = append(left, lipgloss.NewStyle().Foreground(lipgloss.Color("2")).Render("Swap: s/<space>/<enter>"))
+		left = append(left, "Cancel: <esc>")
 	} else if m.focusedPane != 1 {
 		left = append(left, "Swap: s")
 	}
