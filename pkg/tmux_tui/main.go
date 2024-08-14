@@ -166,6 +166,8 @@ func (m Model) UpdateNormal(msg tea.Msg) (Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.windowWidth = msg.Width
 		m.windowHeight = msg.Height
+		m.textInput.CharLimit = msg.Width - 8
+		m.textInput.Width = msg.Width - 8
 	case tickMsg:
 		return m, tea.Batch(tickCmd(), listEntitiesCmd)
 	case previewMsg:
@@ -293,49 +295,51 @@ func (m Model) View() string {
 	w := m.windowWidth
 	h := m.windowHeight
 
-	switch m.appState {
-	case MainWindow, Swapping:
-		h60 := h * 6 / 10
-		h40 := h - h60
+	h60 := h * 6 / 10
+	h40 := h - h60
 
-		w33 := w / 3
-		lw33 := w - 2*w33
+	w33 := w / 3
+	lw33 := w - 2*w33
 
-		foregroundColor := lipgloss.Color("15")
-		if !lipgloss.HasDarkBackground() {
-			foregroundColor = lipgloss.Color("0")
-		}
-
-		preview := lipgloss.NewStyle().
-			Foreground(foregroundColor).
-			Background(lipgloss.NoColor{}).
-			MaxWidth(w-4).
-			MaxHeight(h60-2).
-			Align(lipgloss.Left, lipgloss.Top).
-			Render(m.preview)
-		previewPane := Pane("Preview", w, h60, false, preview)
-
-		sessionsPane := Pane("[1] Sessions", w33, h40-3, m.focusedPane == 1, m.viewSessions())
-		windowsPane := Pane("[2] Windows", w33, h40-3, m.focusedPane == 2, m.viewWindows())
-		panesPane := Pane("[3] Panes", lw33, h40-3, m.focusedPane == 3, m.viewPanes())
-
-		if m.appState == Swapping {
-			sessionsPane = Pane("Sessions", w33, h40-3, m.focusedPane == 1, m.viewSessions())
-			windowsPane = Pane("Windows", w33, h40-3, m.focusedPane == 2, m.viewWindows())
-			panesPane = Pane("Panes", lw33, h40-3, m.focusedPane == 3, m.viewPanes())
-		}
-
-		statusPane := Pane("Status", w, 3, false, statusLine(m))
-
-		horizontalBox := lipgloss.JoinHorizontal(lipgloss.Left, sessionsPane, windowsPane, panesPane)
-		verticalBox := lipgloss.JoinVertical(lipgloss.Top, previewPane, horizontalBox, statusPane)
-
-		return verticalBox
-	case TextInput:
-		return lipgloss.Place(w, h, lipgloss.Center, lipgloss.Center, m.textInput.View())
+	foregroundColor := lipgloss.Color("15")
+	if !lipgloss.HasDarkBackground() {
+		foregroundColor = lipgloss.Color("0")
 	}
 
-	return ""
+	preview := lipgloss.NewStyle().
+		Foreground(foregroundColor).
+		Background(lipgloss.NoColor{}).
+		MaxWidth(w-4).
+		MaxHeight(h60-2).
+		Align(lipgloss.Left, lipgloss.Top).
+		Render(m.preview)
+	previewPane := Pane("Preview", w, h60, false, preview)
+
+	sessionsPane := Pane("[1] Sessions", w33, h40-3, m.focusedPane == 1, m.viewSessions())
+	windowsPane := Pane("[2] Windows", w33, h40-3, m.focusedPane == 2, m.viewWindows())
+	panesPane := Pane("[3] Panes", lw33, h40-3, m.focusedPane == 3, m.viewPanes())
+
+	if m.appState == Swapping {
+		sessionsPane = Pane("Sessions", w33, h40-3, m.focusedPane == 1, m.viewSessions())
+		windowsPane = Pane("Windows", w33, h40-3, m.focusedPane == 2, m.viewWindows())
+		panesPane = Pane("Panes", lw33, h40-3, m.focusedPane == 3, m.viewPanes())
+	}
+
+	var statusPane string
+	switch m.appState {
+	case MainWindow, Swapping:
+		statusPane = Pane("Status", w, 3, false, statusLine(m))
+	case TextInput:
+		sessionsPane = Pane("Sessions", w33, h40-3, false, m.viewSessions())
+		windowsPane = Pane("Windows", w33, h40-3, false, m.viewWindows())
+		panesPane = Pane("Panes", lw33, h40-3, false, m.viewPanes())
+		statusPane = Pane("New name", w, 3, true, m.textInput.View())
+	}
+
+	horizontalBox := lipgloss.JoinHorizontal(lipgloss.Left, sessionsPane, windowsPane, panesPane)
+	verticalBox := lipgloss.JoinVertical(lipgloss.Top, previewPane, horizontalBox, statusPane)
+
+	return verticalBox
 }
 
 func (m Model) visibleWindows() []entity {
@@ -424,8 +428,8 @@ func statusLine(m Model) string {
 	left := []string{"Quit: q"}
 
 	if m.appState != Swapping {
-    left = append(left, "Go to: <enter>")
-    left = append(left, "Delete: d")
+		left = append(left, "Go to: <enter>")
+		left = append(left, "Delete: d")
 
 		if m.focusedPane != 3 {
 			left = append(left, "New: n")
