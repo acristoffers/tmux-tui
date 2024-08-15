@@ -75,11 +75,11 @@ type (
 	}
 )
 
-func NewApplication() *tea.Program {
+func NewApplication(theme Theme) *tea.Program {
 	model := AppModel{
 		Error:        "",
 		terminal:     terminal{80, 80},
-		theme:        DraculaTheme,
+		theme:        theme,
 		preview:      Frame{title: "Preview"},
 		sessions:     ListFrame{frame: Frame{title: "[1] Sessions", focused: true}, parentId: -1},
 		windows:      ListFrame{frame: Frame{title: "[2] Windows"}, parentId: -1},
@@ -92,6 +92,7 @@ func NewApplication() *tea.Program {
 
 	model.textInput = textinput.New()
 	model.textInput.Focus()
+	model.textInput.TextStyle = lipgloss.NewStyle().Foreground(theme.Foreground).Background(theme.Background)
 
 	return tea.NewProgram(model, tea.WithAltScreen())
 }
@@ -121,19 +122,19 @@ func (m AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.sessions.frame.focused = true
 			m.windows.frame.focused = false
 			m.panes.frame.focused = false
-      cmd = previewCmd(m)
+			cmd = previewCmd(m)
 		case "2":
 			m.focusedFrame = 2
 			m.sessions.frame.focused = false
 			m.windows.frame.focused = true
 			m.panes.frame.focused = false
-      cmd = previewCmd(m)
+			cmd = previewCmd(m)
 		case "3":
 			m.focusedFrame = 3
 			m.sessions.frame.focused = false
 			m.windows.frame.focused = false
 			m.panes.frame.focused = true
-      cmd = previewCmd(m)
+			cmd = previewCmd(m)
 		case tea.KeyEnter.String():
 			switch m.focusedFrame {
 			case 1:
@@ -300,6 +301,7 @@ all_modes:
 			cmd = listEntitiesCmd
 		case "a":
 			m.showAll = !m.showAll
+			cmd = listEntitiesCmd
 		}
 	case tickMsg:
 		return m, tea.Batch(tickCmd(), listEntitiesCmd)
@@ -381,40 +383,43 @@ func (m AppModel) View() string {
 func (m AppModel) StatusBar() Frame {
 	frame := Frame{title: "Status"}
 
+	style := lipgloss.NewStyle().Foreground(m.theme.Foreground).Background(m.theme.Background)
+
 	left := []string{"Quit: q"}
 
 	if m.swapSrc == -1 {
-		left = append(left, "Go to: <enter>")
-		left = append(left, "Delete: d")
-		left = append(left, "Swap: s")
+		left = append(left, style.Render("Go to: <enter>"))
+		left = append(left, style.Render("Delete: d"))
+		left = append(left, style.Render("Swap: s"))
 
 		if m.focusedFrame != 3 {
-			left = append(left, "New: n")
-			left = append(left, "New (nameless): N")
-			left = append(left, "Rename: r")
+			left = append(left, style.Render("New: n"))
+			left = append(left, style.Render("New (nameless): N"))
+			left = append(left, style.Render("Rename: r"))
 		} else {
-			left = append(left, "Vertical split: v")
-			left = append(left, "Horizontal split: h")
+			left = append(left, style.Render("Vertical split: v"))
+			left = append(left, style.Render("Horizontal split: h"))
 		}
 	} else {
-		left = append(left, lipgloss.NewStyle().Foreground(m.theme.accent).Render("Swap: s/<space>/<enter>"))
-		left = append(left, "Cancel: <esc>")
+		left = append(left, style.Foreground(m.theme.Accent).Render("Swap: s/<space>/<enter>"))
+		left = append(left, style.Render("Cancel: <esc>"))
 	}
 
 	if m.showAll {
-		left = append(left, lipgloss.NewStyle().Foreground(m.theme.accent).Render("Show all: a"))
+		left = append(left, style.Foreground(m.theme.Accent).Render("Show all: a"))
 	} else {
-		left = append(left, "Show all: a")
+		left = append(left, style.Render("Show all: a"))
 	}
 
 	if len(m.textInput.Value()) > 0 {
-		left = append(left, lipgloss.NewStyle().Foreground(m.theme.accent).Render("Filter: /"))
+		left = append(left, style.Foreground(m.theme.Accent).Render("Filter: /"))
 	} else {
-		left = append(left, "Filter: /")
+		left = append(left, style.Render("Filter: /"))
 	}
 
-	rightString := lipgloss.NewStyle().Foreground(m.theme.secondary).Background(m.theme.background).Render(strings.TrimSpace(Version))
+	rightString := style.Foreground(m.theme.Secondary).Render(strings.TrimSpace(Version))
 
+	separator := style.Render(" | ")
 	maxWidth := uint(m.terminal.width - 7 - lipgloss.Width(rightString))
 	leftString := left[0]
 	for i, v := range left {
@@ -423,12 +428,13 @@ func (m AppModel) StatusBar() Frame {
 		}
 		newWidth := lipgloss.Width(leftString) + 3 + lipgloss.Width(v)
 		if newWidth <= int(maxWidth) {
-			leftString = fmt.Sprintf("%s | %s", leftString, v)
+			leftString = fmt.Sprintf("%s%s%s", leftString, separator, v)
 		}
 	}
-	leftString = lipgloss.NewStyle().Foreground(m.theme.foreground).Background(m.theme.background).Width(int(maxWidth)).Render(leftString)
+	leftString = style.Width(int(maxWidth)).Render(leftString)
 
-	frame.contents = leftString + " " + rightString
+	space := style.Render(" ")
+	frame.contents = leftString + space + rightString
 
 	return frame
 }

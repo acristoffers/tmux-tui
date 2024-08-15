@@ -41,21 +41,23 @@ func (frame Frame) View(theme Theme) string {
 	borderTop := fmt.Sprintf("%s%s%s%s", roundedBorder.TopLeft, roundedBorder.Top, title, roundedBorder.TopRight)
 
 	contents := lipgloss.NewStyle().
-		Foreground(theme.foreground).
-		Background(theme.background).
+		Foreground(theme.Foreground).
+		Background(theme.Background).
 		MaxWidth(width-4).
 		MaxHeight(height).
 		Align(lipgloss.Left, lipgloss.Top).
 		Render(frame.contents)
 
 	header := lipgloss.NewStyle().
-		Background(theme.background).
-		Foreground(theme.foreground).
+		Background(theme.Background).
+		Foreground(theme.Foreground).
 		SetString(borderTop)
 	pane := lipgloss.NewStyle().
-		Background(theme.background).
+		Background(theme.Background).
 		Border(lipgloss.RoundedBorder(), false, true, true, true).
-		Foreground(theme.foreground).
+		Foreground(theme.Foreground).
+		BorderForeground(theme.Foreground).
+		BorderBackground(theme.Background).
 		Height(height).
 		PaddingLeft(1).
 		PaddingRight(1).
@@ -63,8 +65,16 @@ func (frame Frame) View(theme Theme) string {
 		SetString(contents)
 
 	if frame.focused {
-		header = header.Foreground(theme.accent)
-		pane = pane.BorderForeground(theme.accent)
+		header = header.
+			Foreground(theme.Accent).
+			Background(theme.Background).
+			BorderForeground(theme.Accent).
+			BorderBackground(theme.Background)
+		pane = pane.
+			Foreground(theme.Accent).
+			Background(theme.Background).
+			BorderForeground(theme.Accent).
+			BorderBackground(theme.Background)
 	}
 
 	return lipgloss.JoinVertical(lipgloss.Top, header.String(), pane.String())
@@ -100,10 +110,10 @@ func (m AppModel) DrawGrid(preview, sessions, windows, frames, status Frame) str
 }
 
 type ListFrame struct {
-	frame     Frame
-	items     []TmuxEntity
-	currentId int
-	markedIds []int
+	frame      Frame
+	items      []TmuxEntity
+	currentId  int
+	markedIds  []int
 	parentId   int
 	filterText string
 }
@@ -123,17 +133,17 @@ func (listFrame *ListFrame) Update() {
 }
 
 func (listFrame *ListFrame) RenderContents(theme Theme) Frame {
-	enumeratorStyle := lipgloss.NewStyle().Foreground(theme.accent).Background(theme.background)
-	itemStyle := lipgloss.NewStyle().Foreground(theme.foreground).Background(theme.background)
+	enumeratorStyle := lipgloss.NewStyle().Foreground(theme.Accent).Background(theme.Background)
+	itemStyle := lipgloss.NewStyle().Foreground(theme.Foreground).Background(theme.Background)
 
 	currentIndex := -1
 
 	l := list.New().EnumeratorStyle(enumeratorStyle).ItemStyle(itemStyle)
 	for i, item := range listFrame.visibleItems() {
 		if slices.Contains(listFrame.markedIds, item.id) {
-			l.Item(lipgloss.NewStyle().Foreground(theme.secondary).Render(fmt.Sprintf("[%d]: %s", item.id, item.name)))
+			l.Item(itemStyle.Foreground(theme.Secondary).Render(fmt.Sprintf("[%d]: %s", item.id, item.name)))
 		} else {
-			l.Item(fmt.Sprintf("[%d]: %s", item.id, item.name))
+			l.Item(itemStyle.Render(fmt.Sprintf("[%d]: %s", item.id, item.name)))
 		}
 		if item.id == listFrame.currentId {
 			currentIndex = i
@@ -174,7 +184,7 @@ func (listFrame *ListFrame) SelectNext() {
 func (listFrame *ListFrame) SelectPrevious() {
 	items := listFrame.visibleItems()
 	if listFrame.currentId == -1 && len(items) > 0 {
-		listFrame.currentId = items[len(items) - 1].id
+		listFrame.currentId = items[len(items)-1].id
 		return
 	}
 	for i, item := range items {
