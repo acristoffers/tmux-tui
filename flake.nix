@@ -25,9 +25,9 @@
         packages.default = packages.tmux-tui;
         packages.tmux-tui = pkgs.buildGoModule {
           pname = "tmux-tui";
-          version = (builtins.readFile ./pkg/tmux_tui/version);
+          version = (builtins.readFile ./tmux_tui/version);
           src = gitignoreSource ./.;
-          vendorHash = "sha256-2N54NPHtTh2Fad1u+PaZbYT6OIKdOUGe2B6C+G0mbx0=";
+          vendorHash = "sha256-AmBosdrk/pzqJrRAhxhVwLjceKTdh07nTdVonVUTa/A=";
           installPhase = ''
             runHook preInstall
             mkdir -p $out/bin

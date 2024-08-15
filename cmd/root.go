@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/acristoffers/tmux-tui/pkg/tmux_tui"
+	"github.com/acristoffers/tmux-tui/tmux_tui"
 	"github.com/spf13/cobra"
 )
 
@@ -32,7 +32,7 @@ var RootCmd = &cobra.Command{
 		}
 
 		switch m := m.(type) {
-		case tmux_tui.Model:
+		case tmux_tui.AppModel:
 			if len(m.Error) != 0 {
 				os.Stderr.WriteString(m.Error + "\n")
 				os.Exit(1)
