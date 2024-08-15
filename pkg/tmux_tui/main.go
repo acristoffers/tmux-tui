@@ -466,7 +466,7 @@ func statusLine(m Model) string {
 func listEntitiesCmd() tea.Msg {
 	// Fetches info about all sessions, windows and panes at once
 	c := exec.Command("tmux",
-		"list-panes", "-aF", "#{session_id}\t#{window_id}\t#{pane_id}\t#{session_name}\t#{window_name}", ";",
+		"list-panes", "-aF", "#{session_id}\t#{window_id}\t#{pane_id}\t#{session_name}\t#{window_name}\t#{pane_current_command}", ";",
 		"display-message", "-p", "#{session_id}\t#{window_id}\t#{pane_id}")
 	bytes, err := c.Output()
 	if err != nil {
@@ -509,10 +509,11 @@ func listEntitiesCmd() tea.Msg {
 
 		session_name := parts[3]
 		window_name := parts[4]
+		pane_name := parts[5]
 
 		sessions = append(sessions, entity{session_id, session_name, -1})
 		windows = append(windows, entity{window_id, window_name, session_id})
-		panes = append(panes, entity{pane_id, "", window_id})
+		panes = append(panes, entity{pane_id, pane_name, window_id})
 	}
 
 	cmp := func(a, b entity) int {

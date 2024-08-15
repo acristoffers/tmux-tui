@@ -54,12 +54,12 @@ func (m Model) viewPanes() string {
 		panesString := lipgloss.NewStyle().
 			Width(m.windowWidth/3 - 4).
 			MaxWidth(m.windowWidth/3 - 4).
-			SetString(fmt.Sprintf("%d", pane.id))
+      SetString(fmt.Sprintf("%d: %s", pane.id, pane.name))
 		if m.appState == Swapping && pane.id == m.swapSrc && m.focusedPane == 3 {
 			panesString = panesString.
 				Background(lipgloss.Color("4")).
 				Foreground(lipgloss.Color("15")).
-				SetString(fmt.Sprintf("[src] %d", pane.id))
+        SetString(fmt.Sprintf("[src] %d: %s", pane.id, pane.name))
 		}
 		if pane.id == m.focusedPaneId {
 			panesString = panesString.Foreground(lipgloss.Color("2"))
