@@ -35,29 +35,24 @@ func (frame Frame) View(theme Theme) string {
 	width := frame.width - 2
 	height := frame.height - 2
 
-	// First line of the border, with the title
-	truncated := truncate.String(fmt.Sprintf(" %s ", frame.title), uint(width-1))
+	// Labeled top border
+	truncated := truncate.String(fmt.Sprintf(" %s ", frame.title), uint(width-2))
 	title := lipgloss.PlaceHorizontal(width-1, lipgloss.Left, truncated, lipgloss.WithWhitespaceChars(roundedBorder.Top))
 	borderTop := fmt.Sprintf("%s%s%s%s", roundedBorder.TopLeft, roundedBorder.Top, title, roundedBorder.TopRight)
 
-	contents := lipgloss.NewStyle().
-		Foreground(theme.Foreground).
+	style := lipgloss.NewStyle().
 		Background(theme.Background).
-		MaxWidth(width-4).
+		BorderBackground(theme.Background).
+		BorderForeground(theme.Foreground).
+		Foreground(theme.Foreground)
+
+	contents := style.Align(lipgloss.Left, lipgloss.Top).
+		MaxWidth(width - 4).
 		MaxHeight(height).
-		Align(lipgloss.Left, lipgloss.Top).
 		Render(frame.contents)
 
-	header := lipgloss.NewStyle().
-		Background(theme.Background).
-		Foreground(theme.Foreground).
-		SetString(borderTop)
-	pane := lipgloss.NewStyle().
-		Background(theme.Background).
-		Border(lipgloss.RoundedBorder(), false, true, true, true).
-		Foreground(theme.Foreground).
-		BorderForeground(theme.Foreground).
-		BorderBackground(theme.Background).
+	header := style.SetString(borderTop)
+	pane := style.Border(lipgloss.RoundedBorder(), false, true, true, true).
 		Height(height).
 		PaddingLeft(1).
 		PaddingRight(1).
@@ -65,16 +60,8 @@ func (frame Frame) View(theme Theme) string {
 		SetString(contents)
 
 	if frame.focused {
-		header = header.
-			Foreground(theme.Accent).
-			Background(theme.Background).
-			BorderForeground(theme.Accent).
-			BorderBackground(theme.Background)
-		pane = pane.
-			Foreground(theme.Accent).
-			Background(theme.Background).
-			BorderForeground(theme.Accent).
-			BorderBackground(theme.Background)
+		header = header.Foreground(theme.Accent).BorderForeground(theme.Accent)
+		pane = pane.Foreground(theme.Accent).BorderForeground(theme.Accent)
 	}
 
 	return lipgloss.JoinVertical(lipgloss.Top, header.String(), pane.String())

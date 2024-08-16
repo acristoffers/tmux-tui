@@ -354,27 +354,20 @@ func (m AppModel) View() string {
 		panes.title = "Panes"
 	}
 
-	var status Frame
-	if m.inputAction == None {
+	m.textInput.Width = m.terminal.width - 4
+	var status = Frame{
+		title:    "New name",
+		contents: m.textInput.View(),
+		width:    m.terminal.width,
+		height:   m.terminal.height,
+		focused:  true,
+	}
+
+	switch m.inputAction {
+	case None:
 		status = m.StatusBar()
-	} else if m.inputAction == Filter {
-		m.textInput.Width = m.terminal.width - 4
-		status = Frame{
-			title:    "Filter",
-			contents: m.textInput.View(),
-			width:    m.terminal.width,
-			height:   m.terminal.height,
-			focused:  true,
-		}
-	} else {
-		m.textInput.Width = m.terminal.width - 4
-		status = Frame{
-			title:    "New name",
-			contents: m.textInput.View(),
-			width:    m.terminal.width,
-			height:   m.terminal.height,
-			focused:  true,
-		}
+	case Filter:
+		status.title = "Filter"
 	}
 
 	return m.DrawGrid(preview, sessions, windows, panes, status)
@@ -382,44 +375,44 @@ func (m AppModel) View() string {
 
 func (m AppModel) StatusBar() Frame {
 	frame := Frame{title: "Status"}
-
-	style := lipgloss.NewStyle().Foreground(m.theme.Foreground).Background(m.theme.Background)
-
-	left := []string{"Quit: q"}
+	normalStyle := lipgloss.NewStyle().Foreground(m.theme.Foreground).Background(m.theme.Background)
+	accentStyle := normalStyle.Foreground(m.theme.Accent)
+	left := []string{normalStyle.Render("Quit: q")}
 
 	if m.swapSrc == -1 {
-		left = append(left, style.Render("Go to: <enter>"))
-		left = append(left, style.Render("Delete: d"))
-		left = append(left, style.Render("Swap: s"))
-
+		left = append(left, normalStyle.Render("Go to: <enter>"))
+		left = append(left, normalStyle.Render("Delete: d"))
+		left = append(left, normalStyle.Render("Swap: s"))
 		if m.focusedFrame != 3 {
-			left = append(left, style.Render("New: n"))
-			left = append(left, style.Render("New (nameless): N"))
-			left = append(left, style.Render("Rename: r"))
+			left = append(left, normalStyle.Render("New: n"))
+			left = append(left, normalStyle.Render("New (nameless): N"))
+			left = append(left, normalStyle.Render("Rename: r"))
 		} else {
-			left = append(left, style.Render("Vertical split: v"))
-			left = append(left, style.Render("Horizontal split: h"))
+			left = append(left, normalStyle.Render("Vertical split: v"))
+			left = append(left, normalStyle.Render("Horizontal split: h"))
 		}
 	} else {
-		left = append(left, style.Foreground(m.theme.Accent).Render("Swap: s/<space>/<enter>"))
-		left = append(left, style.Render("Cancel: <esc>"))
+		left = append(left, accentStyle.Render("Swap: s/<space>/<enter>"))
+		left = append(left, normalStyle.Render("Cancel: <esc>"))
 	}
 
 	if m.showAll {
-		left = append(left, style.Foreground(m.theme.Accent).Render("Show all: a"))
+		left = append(left, accentStyle.Render("Show all: a"))
 	} else {
-		left = append(left, style.Render("Show all: a"))
+		left = append(left, normalStyle.Render("Show all: a"))
 	}
 
-	if len(m.textInput.Value()) > 0 {
-		left = append(left, style.Foreground(m.theme.Accent).Render("Filter: /"))
-	} else {
-		left = append(left, style.Render("Filter: /"))
+	if m.swapSrc == -1 {
+		if len(m.textInput.Value()) > 0 {
+			left = append(left, accentStyle.Render("Filter: /"))
+		} else {
+			left = append(left, normalStyle.Render("Filter: /"))
+		}
 	}
 
-	rightString := style.Foreground(m.theme.Secondary).Render(strings.TrimSpace(Version))
+	rightString := normalStyle.Foreground(m.theme.Secondary).Render(strings.TrimSpace(Version))
 
-	separator := style.Render(" | ")
+	separator := normalStyle.Render(" | ")
 	maxWidth := uint(m.terminal.width - 7 - lipgloss.Width(rightString))
 	leftString := left[0]
 	for i, v := range left {
@@ -431,11 +424,9 @@ func (m AppModel) StatusBar() Frame {
 			leftString = fmt.Sprintf("%s%s%s", leftString, separator, v)
 		}
 	}
-	leftString = style.Width(int(maxWidth)).Render(leftString)
+	leftString = normalStyle.Width(int(maxWidth)).Render(leftString)
 
-	space := style.Render(" ")
-	frame.contents = leftString + space + rightString
-
+	frame.contents = leftString + normalStyle.Render(" ") + rightString
 	return frame
 }
 
