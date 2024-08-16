@@ -2,7 +2,7 @@
 
 Manages tmux sessions, windows and panes in a Terminal User Interface inspired by lazygit.
 
-![screenshot](.screenshot/screenshot.png)
+![Screenshot](https://github.com/acristoffers/tmux-tui/blob/screenshots/dracula.png)
 
 ## Implemented actions
 
@@ -14,32 +14,7 @@ Manages tmux sessions, windows and panes in a Terminal User Interface inspired b
 
 ## Themes
 
-The following themes are supported. Invoke with `-t gruvbox-dark` to launch with the Gruvbox Dark
-theme, for example.
-
-|Name                |Option name         |
-|:---                |:---                |
-| Ayu Dark           |`ayu-dark`          |
-| Cobalt2            |`cobalt2`           |
-| Dracula            |`dracula`           |
-| Dracula Pro        |`dracula-pro`       |
-| GitHub Dark        |`github-dark`       |
-| Gruvbox Dark       |`gruvbox-dark`      |
-| Gruvbox Light      |`gruvbox-light`     |
-| Material Palenight |`material-palenight`|
-| Monokai            |`monokai`           |
-| Night Owl          |`night-owl`         |
-| Nord               |`nord`              |
-| Oceanic Next       |`oceanic-next`      |
-| One Dark           |`one-dark`          |
-| One Light          |`one-light`         |
-| PaperColor Dark    |`papercolor-dark`   |
-| PaperColor Light   |`papercolor-light`  |
-| Solarized Dark     |`solarized-dark`    |
-| Solarized Light    |`solarized-light`   |
-| Synthwave '84      |`synthwave`         |
-| Tokyo Night        |`tokyo-night`       |
-| Tomorrow Night     |`tomorrow-night`    |
+See [Themes](themes.md)
 
 ## Installation
 
