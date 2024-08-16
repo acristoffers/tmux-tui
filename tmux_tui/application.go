@@ -205,7 +205,7 @@ func (m AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.textInput.SetValue("")
 		cmd = listEntitiesCmd
 	}
-	goto all_modes
+	goto common_bindings
 
 swap_mode:
 	switch msg := msg.(type) {
@@ -227,14 +227,10 @@ swap_mode:
 			m.swapSrc = -1
 		}
 	}
-	goto all_modes
+	goto common_bindings
 
 input_mode:
 	m.textInput, cmd = m.textInput.Update(msg)
-
-	if cmd != nil {
-		return m, cmd
-	}
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -271,9 +267,9 @@ input_mode:
 		m.panes.filterText = m.textInput.Value()
 	}
 
-	return m, cmd
+	goto basic_handlers
 
-all_modes:
+common_bindings:
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -303,8 +299,12 @@ all_modes:
 			m.showAll = !m.showAll
 			cmd = listEntitiesCmd
 		}
+	}
+
+basic_handlers:
+	switch msg := msg.(type) {
 	case tickMsg:
-		return m, tea.Batch(tickCmd(), listEntitiesCmd)
+		cmd = tea.Batch(tickCmd(), listEntitiesCmd)
 	case tea.WindowSizeMsg:
 		m.terminal.width = msg.Width
 		m.terminal.height = msg.Height
