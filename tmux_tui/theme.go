@@ -1,6 +1,10 @@
 package tmux_tui
 
-import "github.com/charmbracelet/lipgloss"
+import (
+	"errors"
+
+	"github.com/charmbracelet/lipgloss"
+)
 
 type Theme struct {
 	Name                string
@@ -12,7 +16,7 @@ type Theme struct {
 	SelectionBackground lipgloss.Color
 }
 
-var AvailableThemes = []string{
+var AvailableThemeHandles = []string{
 	"ayu-dark",
 	"cobalt2",
 	"dracula",
@@ -36,52 +40,76 @@ var AvailableThemes = []string{
 	"tomorrow-night",
 }
 
-func ThemeForName(name string) *Theme {
+var AvailableThemes = []Theme{
+	AyuDarkTheme,
+	Cobalt2Theme,
+	DraculaProTheme,
+	DraculaTheme,
+	GitHubDarkTheme,
+	GruvboxDarkTheme,
+	GruvboxLightTheme,
+	MaterialPalenightTheme,
+	MonokaiTheme,
+	NightOwlTheme,
+	NordTheme,
+	OceanicNextTheme,
+	OneDarkTheme,
+	OneLightTheme,
+	PaperColorDarkTheme,
+	PaperColorLightTheme,
+	SolarizedDarkTheme,
+	SolarizedLightTheme,
+	Synthwave84Theme,
+	TokyoNightTheme,
+	TomorrowNightTheme,
+}
+
+func ThemeForName(name string) (Theme, error) {
 	switch name {
-	case "github-dark":
-		return &GitHubDarkTheme
-	case "papercolor-light":
-		return &PaperColorLightTheme
-	case "papercolor-dark":
-		return &PaperColorDarkTheme
-	case "cobalt2":
-		return &Cobalt2Theme
-	case "synthwave":
-		return &Synthwave84Theme
-	case "tokyo-night":
-		return &TokyoNightTheme
-	case "material-palenight":
-		return &MaterialPalenightTheme
-	case "night-owl":
-		return &NightOwlTheme
 	case "ayu-dark":
-		return &AyuDarkTheme
-	case "dracula-pro":
-		return &DraculaProTheme
-	case "oceanic-next":
-		return &OceanicNextTheme
-	case "one-light":
-		return &OneLightTheme
-	case "one-dark":
-		return &OneDarkTheme
-	case "tomorrow-night":
-		return &TomorrowNightTheme
-	case "gruvbox-light":
-		return &GruvboxLightTheme
-	case "gruvbox-dark":
-		return &GruvboxDarkTheme
-	case "nord":
-		return &NordTheme
-	case "solarized-light":
-		return &SolarizedLightTheme
-	case "solarized-dark":
-		return &SolarizedDarkTheme
-	case "monokai":
-		return &MonokaiTheme
+		return AyuDarkTheme, nil
+	case "cobalt2":
+		return Cobalt2Theme, nil
 	case "dracula":
-		return &DraculaTheme
+		return DraculaTheme, nil
+	case "dracula-pro":
+		return DraculaProTheme, nil
+	case "github-dark":
+		return GitHubDarkTheme, nil
+	case "gruvbox-dark":
+		return GruvboxDarkTheme, nil
+	case "gruvbox-light":
+		return GruvboxLightTheme, nil
+	case "material-palenight":
+		return MaterialPalenightTheme, nil
+	case "monokai":
+		return MonokaiTheme, nil
+	case "night-owl":
+		return NightOwlTheme, nil
+	case "nord":
+		return NordTheme, nil
+	case "oceanic-next":
+		return OceanicNextTheme, nil
+	case "one-dark":
+		return OneDarkTheme, nil
+	case "one-light":
+		return OneLightTheme, nil
+	case "papercolor-dark":
+		return PaperColorDarkTheme, nil
+	case "papercolor-light":
+		return PaperColorLightTheme, nil
+	case "solarized-dark":
+		return SolarizedDarkTheme, nil
+	case "solarized-light":
+		return SolarizedLightTheme, nil
+	case "synthwave":
+		return Synthwave84Theme, nil
+	case "tokyo-night":
+		return TokyoNightTheme, nil
+	case "tomorrow-night":
+		return TomorrowNightTheme, nil
 	}
-	return nil
+	return Theme{}, errors.New("Theme not found")
 }
 
 var DraculaTheme = Theme{
