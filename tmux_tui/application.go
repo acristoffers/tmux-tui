@@ -498,23 +498,9 @@ func listEntitiesCmd() tea.Msg {
 		panes = append(panes, TmuxEntity{pane_id, pane_name, window_id})
 	}
 
-	cmp := func(a, b TmuxEntity) int {
-		if a.id < b.id {
-			return -1
-		} else if a.id == b.id {
-			return 0
-		} else {
-			return 1
-		}
-	}
-
 	if len(sessions) == 0 {
 		return errorMsg("No sessions found. Is tmux running?")
 	}
-
-	slices.SortFunc(sessions, cmp)
-	slices.SortFunc(windows, cmp)
-	slices.SortFunc(panes, cmp)
 
 	eq := func(a, b TmuxEntity) bool {
 		return a.id == b.id
