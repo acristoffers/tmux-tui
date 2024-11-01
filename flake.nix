@@ -27,7 +27,7 @@
           pname = "tmux-tui";
           version = (builtins.readFile ./tmux_tui/version);
           src = gitignoreSource ./.;
-          vendorHash = "sha256-AmBosdrk/pzqJrRAhxhVwLjceKTdh07nTdVonVUTa/A=";
+          vendorHash = "sha256-dbAkr0IPqJ9Dy1VNpuwaHiLEZRWvnYKa0tX/q3E6u30=";
           installPhase = ''
             runHook preInstall
             mkdir -p $out/bin
