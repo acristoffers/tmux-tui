@@ -18,6 +18,7 @@ type Theme struct {
 
 var AvailableThemeHandles = []string{
 	"ayu-dark",
+	"catppuccin",
 	"cobalt2",
 	"dracula",
 	"dracula-pro",
@@ -43,6 +44,7 @@ var AvailableThemeHandles = []string{
 var AvailableThemes = []Theme{
 	AyuDarkTheme,
 	Cobalt2Theme,
+	CatppuccinTheme,
 	DraculaProTheme,
 	DraculaTheme,
 	GitHubDarkTheme,
@@ -70,6 +72,8 @@ func ThemeForName(name string) (Theme, error) {
 		return AyuDarkTheme, nil
 	case "cobalt2":
 		return Cobalt2Theme, nil
+	case "catppuccin":
+		return CatppuccinTheme, nil
 	case "dracula":
 		return DraculaTheme, nil
 	case "dracula-pro":
@@ -320,4 +324,14 @@ var GitHubDarkTheme = Theme{
 	Accent:              lipgloss.Color("#58A6FF"),
 	Secondary:           lipgloss.Color("#F85149"),
 	SelectionBackground: lipgloss.Color("#30363D"),
+}
+
+var CatppuccinTheme = Theme{
+	Name:                "Catppuccin",
+	Handle:              "catppuccin",
+	Background:          lipgloss.Color("#1e1e2e"),
+	Foreground:          lipgloss.Color("#cdd6f4"),
+	Accent:              lipgloss.Color("#cba6f7"),
+	Secondary:           lipgloss.Color("#f38ba8"),
+	SelectionBackground: lipgloss.Color("#44475A"),
 }
