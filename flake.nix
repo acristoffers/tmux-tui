@@ -27,7 +27,11 @@
           pname = "tmux-tui";
           version = (builtins.readFile ./tmux_tui/version);
           src = gitignoreSource ./.;
-          vendorHash = "sha256-veub3SLgnuV5R8QzL/oti1SKDryMmoiw070yKAAu44E=";
+          vendorHash = "sha256-nuWz0bma2u7guaFYJ9DDeka+NS3Dkl+EmmkzrskayxY=";
+          buildInputs = with pkgs; [ glibc.static ];
+          CFLAGS = "-I${pkgs.glibc.dev}/include";
+          LDFLAGS = "-L${pkgs.glibc}/lib";
+          ldflags = [ "-s" "-w" "-linkmode external" "-extldflags '-static'" ];
           installPhase = ''
             runHook preInstall
             mkdir -p $out/bin
@@ -35,7 +39,6 @@
             $GOPATH/bin/docgen
             cp -r build/share $out/share
             cp $GOPATH/bin/tmux-tui $out/bin/tmux-tui
-            strip $out/bin/tmux-tui
             runHook postInstall
           '';
         };
