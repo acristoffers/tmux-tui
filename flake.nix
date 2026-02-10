@@ -27,7 +27,7 @@
           pname = "tmux-tui";
           version = (builtins.readFile ./tmux_tui/version);
           src = gitignoreSource ./.;
-          vendorHash = "sha256-nuWz0bma2u7guaFYJ9DDeka+NS3Dkl+EmmkzrskayxY=";
+          vendorHash = "sha256-SKKtCFHzky0dYsbE+lzVT0JmzK3SauOBkco9wyO0dfU=";
           buildInputs = with pkgs; [ glibc.static ];
           CFLAGS = "-I${pkgs.glibc.dev}/include";
           LDFLAGS = "-L${pkgs.glibc}/lib";
