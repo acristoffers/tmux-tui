@@ -18,6 +18,8 @@ See [Themes](themes.md)
 
 ## Installation
 
+There are packages for Ubuntu and Fedora in my [personal repository](https://github.com/acristoffers/repository).
+
 Install with go:
 
 ```bash
